@@ -415,14 +415,18 @@ PLASMA GUN
 ======================================================================
 */
 
+#define NUM_PLASMASHOTS 2
 void Weapon_Plasmagun_Fire (gentity_t *ent) {
 	gentity_t	*m;
+	int count;
 
-	m = fire_plasma (ent, muzzle, forward);
-	m->damage *= s_quadFactor;
-	m->splashDamage *= s_quadFactor;
-
-//	VectorAdd( m->s.pos.trDelta, ent->client->ps.velocity, m->s.pos.trDelta );	// "real" physics
+	for(count = 0; count < NUM_PLASMASHOTS; count++ ) {
+		m = fire_plasma (ent, muzzle, forward, right, up);
+		m->damage *= s_quadFactor;
+		m->splashDamage *= s_quadFactor;
+	
+		VectorAdd( m->s.pos.trDelta, ent->client->ps.velocity, m->s.pos.trDelta );	// "real" physics
+	}
 }
 
 /*

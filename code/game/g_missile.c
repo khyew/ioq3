@@ -519,10 +519,12 @@ fire_plasma
 
 =================
 */
-gentity_t *fire_plasma (gentity_t *self, vec3_t start, vec3_t dir) {
+#define PLASMAGUN_SPREAD 250 // aww yeah devildaggers
+gentity_t *fire_plasma( gentity_t *self, vec3_t start, vec3_t forward, vec3_t right, vec3_t up ) {
 	gentity_t	*bolt;
-
-	VectorNormalize (dir);
+	vec3_t		dir;
+	vec3_t		end;
+	float		r, u, scale;
 
 	bolt = G_Spawn();
 	bolt->classname = "plasma";
@@ -533,19 +535,33 @@ gentity_t *fire_plasma (gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->s.weapon = WP_PLASMAGUN;
 	bolt->r.ownerNum = self->s.number;
 	bolt->parent = self;
-	bolt->damage = 3;
+	bolt->damage = 5;
 	bolt->methodOfDeath = MOD_PLASMA;
 	bolt->splashMethodOfDeath = MOD_PLASMA_SPLASH;
 	bolt->clipmask = MASK_SHOT;
 	bolt->target_ent = NULL;
 
 	bolt->s.pos.trType = TR_LINEAR;
-	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
+	bolt->s.pos.trTime = level.time;
+
+	// start position of the projectile
+	VectorMA(start, random() * 16, forward, start);
 	VectorCopy( start, bolt->s.pos.trBase );
-	VectorScale( dir, 900, bolt->s.pos.trDelta );
+	VectorCopy (start, bolt->r.currentOrigin);
+
+	r = random() * M_PI * 2.0f;
+	u = sin(r) * crandom() * PLASMAGUN_SPREAD * 16;
+	r = cos(r) * crandom() * PLASMAGUN_SPREAD * 16;
+	VectorMA(start, 8192 * 16, forward, end);
+	VectorMA (end, r, right, end);
+	VectorMA (end, u, up, end);
+	VectorSubtract( end, start, dir );
+	VectorNormalize( dir );
+
+	scale = 750 + random() * 750; // add some random speed to bullets
+	VectorScale( dir, scale, bolt->s.pos.trDelta );
 	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
 
-	VectorCopy (start, bolt->r.currentOrigin);
 
 	return bolt;
 }	
